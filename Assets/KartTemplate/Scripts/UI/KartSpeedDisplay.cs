@@ -21,7 +21,6 @@ public class KartSpeedDisplay : MonoBehaviour
 
     void Update()
     {
-        Debug.Log(_kart.Acceleration);
         forwardSpeed.value = _kart.Acceleration;
         turnSpeed.value = _kart.Steering;
     }

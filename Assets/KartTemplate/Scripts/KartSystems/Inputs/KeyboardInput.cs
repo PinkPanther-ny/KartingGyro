@@ -1,10 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine;
 using System.IO.Ports;
 using System.Threading;
-using System.Collections.Generic;
 using System.Timers;
 using System.ComponentModel;
 using System.Text;
@@ -18,6 +16,7 @@ namespace KartGame.KartSystems
     {
         [SerializeField]
         public string device = "/dev/ttyUSB0";
+        public int serialPortByteOffset = 1;
         public float fowardStartPitchAngle = 30f;
         public float fowardSepPitchAngle = 20f;
         public float fowardFullAddPitchAngle = 20f;
@@ -27,7 +26,8 @@ namespace KartGame.KartSystems
         public float turnFullAddRollAngle = 20f;
         
         SerialPort port;
-        byte[] byteBuffer = new byte[18];
+        // Should read 18 but on windows there's an offset of 1 byte
+        byte[] byteBuffer = new byte[20];
         float yaw_angle;
         float pitch_angle;
         float roll_angle;
@@ -54,11 +54,16 @@ namespace KartGame.KartSystems
         void Update_data()
         {
     	    while(true){
-	    	port.Read(byteBuffer, 0, 18);
-	    	yaw_angle   = twosComplement_hex(byteBuffer[10] | byteBuffer[11] << 8) / 100.0f;
-	    	pitch_angle = twosComplement_hex(byteBuffer[12] | byteBuffer[13] << 8) / 100.0f;
-	    	roll_angle  = twosComplement_hex(byteBuffer[14] | byteBuffer[15] << 8) / 100.0f;
-    	    }
+	    	    port.Read(byteBuffer, serialPortByteOffset, 18);
+	    	    yaw_angle   = twosComplement_hex(byteBuffer[10] | byteBuffer[11] << 8) / 100.0f;
+	    	    pitch_angle = twosComplement_hex(byteBuffer[12] | byteBuffer[13] << 8) / 100.0f;
+	    	    roll_angle  = twosComplement_hex(byteBuffer[14] | byteBuffer[15] << 8) / 100.0f;
+
+
+                string hex = BitConverter.ToString(byteBuffer);
+                Debug.Log(hex);
+                //Debug.Log((byteBuffer[0], byteBuffer[1], yaw_angle, pitch_angle, roll_angle));
+            }
         }
         public float Acceleration
         {
@@ -127,7 +132,6 @@ namespace KartGame.KartSystems
             else
                 m_Steering = 0f;
             
-            Debug.Log((m_Acceleration,m_Steering));
 
             m_HopHeld = Input.GetKey (KeyCode.Space);
 
